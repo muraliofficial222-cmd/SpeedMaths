@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speed Maths</title>
+<style>
+:root{--bg:#eef3f1;--card:#fff;--ink:#14263a;--mute:#5d7081;--line:#cfdad6;--acc:#1f6f5c;--acc-ink:#fff;--bad:#b9411a;--ok:#1f6f5c;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a21;--card:#16262f;--ink:#e6eff0;--mute:#8fa4ad;--line:#27404b;--acc:#4fc3a1;--acc-ink:#06201a;--bad:#ff8a5c;--ok:#4fc3a1;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1a21;--card:#16262f;--ink:#e6eff0;--mute:#8fa4ad;--line:#27404b;--acc:#4fc3a1;--acc-ink:#06201a;--bad:#ff8a5c;--ok:#4fc3a1;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:720px;margin:0 auto;padding:16px}
+h1{font:700 1.5rem/1.2 Georgia,"Iowan Old Style",serif;margin:0 0 10px}
+.seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;max-width:100%}
+.seg button{border:0;background:none;color:var(--ink);padding:6px 13px;font:inherit;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--bg)}
+nav{display:flex;gap:8px;overflow-x:auto;padding:10px 0}
+nav button{flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 13px;font:inherit;font-weight:600;cursor:pointer}
+nav button.on{border-color:var(--acc);background:var(--acc);color:var(--acc-ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.lv{display:flex;gap:10px;align-items:center;margin-bottom:10px;color:var(--mute);font-size:.9rem}
+.lv:empty{display:none}
+.lv .seg button{padding:3px 12px;font-size:.9rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.ctl{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.ctl input,.ans{font:inherit;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:8px 10px;width:6.5em;font-variant-numeric:tabular-nums}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 14px}
+.list.w{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.row{display:flex;justify-content:space-between;gap:8px;padding:6px 2px;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+.row b{color:var(--acc)}
+h2{font:700 1.05rem/1.3 Georgia,serif;margin:20px 0 8px}
+h2:first-child{margin-top:0}
+.q{font:700 2.6rem/1.2 Georgia,serif;text-align:center;margin:18px 0;font-variant-numeric:tabular-nums}
+.q.sm{font-size:1.5rem}
+.qrow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.ans{width:9em;font-size:1.4rem;text-align:center}
+.go{border:0;border-radius:10px;background:var(--acc);color:var(--acc-ink);font:inherit;font-weight:700;padding:10px 22px;cursor:pointer}
+.ghost{border:1.5px solid var(--line);background:none;color:var(--ink);border-radius:10px;font:inherit;padding:8px 14px;cursor:pointer}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+#fb{min-height:2em;text-align:center;font-weight:700;margin-top:12px}
+.stats{display:flex;justify-content:space-around;text-align:center;border-bottom:1px solid var(--line);padding-bottom:12px;gap:8px}
+.stats b{display:block;font:700 1.4rem Georgia,serif;font-variant-numeric:tabular-nums}
+.stats span{color:var(--mute);font-size:.85rem}
+.bars{display:flex;gap:8px;align-items:flex-end;margin:8px 0}
+.bar{flex:1;text-align:center;font-size:.8rem;color:var(--mute)}
+.bar i{display:block;background:var(--acc);border-radius:4px 4px 0 0;min-height:3px;margin-bottom:4px}
+.ex{background:var(--bg);border-radius:8px;padding:6px 10px;margin:6px 0 10px;font-variant-numeric:tabular-nums}
+p{margin:4px 0 8px}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+small{color:var(--mute)}
+</style>
+</head>
+<body>
+<div id="app">
+<h1>Speed Maths</h1>
+<div class="seg" id="modes"></div>
+<nav id="tabs"></nav>
+<div class="lv" id="lv"></div>
+<main class="panel" id="view"></main>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const BASE=[["tables","Tables"],["squares","Squares"],["cubes","Cubes"],["roots","Roots"],["percent","Percent"],["fractions","Fractions"],["aptitude","Aptitude"]];
+const NAMES=Object.fromEntries(BASE.concat([["mixed","Mixed"],["weak","Weak spots"]]));
+const MODES=[["learn","Learn"],["quiz","Quiz"],["sprint","Sprint"],["tricks","Tricks"],["stats","Stats"]];
+let mode="learn",tab="tables",lvl="medium",n=12,pn=200,cur=null,t0=0,timer=0,sp={},clr=false,S={ok:0,tot:0,streak:0,ms:0};
+let H=ld("sm_h",{}),W=ld("sm_w",{}),B=ld("sm_b",{});
+const f=(x,d=3)=>String(+x.toFixed(d));
+const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
+const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const dk=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+
+/* ---------- Learn ---------- */
+const PCTS=[1,2,5,10,12.5,15,20,25,30,33.33,40,50,60,66.67,75,80,90];
+const tRows=()=>range(1,20).map(i=>row(`${n} × ${i}`,n*i)).join("");
+const pRows=()=>PCTS.map(p=>row(p+"% of "+pn,f(p*pn/100))).join("");
+const LEARN={
+ tables:()=>`<div class="ctl"><label>Table of <input id="num" type="number" min="1" max="100" value="${n}"></label></div><div class="list" id="out">${tRows()}</div>`,
+ squares:()=>`<div class="list">${range(1,50).map(i=>row(i+"²",i*i)).join("")}</div>`,
+ cubes:()=>`<div class="list">${range(1,30).map(i=>row(i+"³",i**3)).join("")}</div>`,
+ roots:()=>`<h2>Square roots</h2><div class="list">${range(1,30).map(i=>row("√"+i*i,i)).join("")}</div><h2>Cube roots</h2><div class="list">${range(1,15).map(i=>row("∛"+i**3,i)).join("")}</div><h2>Useful approximate roots</h2><div class="list">${[2,3,5,6,7,10,11,13].map(i=>row("√"+i,f(Math.sqrt(i)))).join("")}</div>`,
+ percent:()=>`<p>10% is the number with the decimal moved one place. 5% is half of that. 15% is 10% + 5%.</p><div class="ctl"><label>Number <input id="pn" type="number" value="${pn}"></label></div><div class="list" id="out">${pRows()}</div>`,
+ fractions:()=>`<h2>Unit fractions</h2><div class="list w">${range(2,20).map(i=>row("1/"+i,f(1/i,4)+" · "+f(100/i,2)+"%")).join("")}</div><h2>Worth remembering</h2><div class="list w">${[[2,3],[3,8],[5,8],[7,8],[3,5],[4,5],[5,6],[3,4]].map(([p,d])=>row(p+"/"+d,f(p/d,4)+" · "+f(100*p/d,2)+"%")).join("")}</div>`,
+ aptitude:()=>`<h2>Average</h2><p>Sum ÷ count. Shortcut: guess a middle value and add the gaps.</p><div class="ex">12, 18, 24, 30 → guess 20: −8, −2, +4, +10 = +4 → 4 ÷ 4 = +1 → 21</div><h2>Simple interest</h2><p>SI = P × R × T ÷ 100. Divide P by 100 first.</p><div class="ex">₹3200 at 8% for 3 years → 32 × 8 × 3 = ₹768</div><h2>Ratio shares</h2><p>Share = total ÷ sum of parts × the part.</p><div class="ex">240 in 3:5 → 240 ÷ 8 = 30 → 3 parts = 90, 5 parts = 150</div>`
+};
+
+/* ---------- Tricks ---------- */
+const TR=[
+["Square a number ending in 5","Multiply the leading digits by the next number up, then write 25 after it.","35² → 3 × 4 = 12 → 1225",()=>{const m=ri(1,19)*10+5;return{q:m+"²",a:m*m}}],
+["Multiply by 11","Write the first digit, then each neighbouring pair added, then the last digit. Carry when a sum passes 9.","52 × 11 → 5 | 5+2 | 2 → 572. And 78 × 11 → 7 | 15 | 8 → 858",()=>{const m=ri(12,99);return{q:m+" × 11",a:m*11}}],
+["Multiply by 5","Halve the number, then multiply by 10.","48 × 5 → 24 → 240",()=>{const m=ri(12,199);return{q:m+" × 5",a:m*5}}],
+["Multiply by 25","Divide by 4, then multiply by 100.","36 × 25 → 9 → 900",()=>{const m=ri(4,60);return{q:m+" × 25",a:m*25}}],
+["Multiply by 9 or 99","Multiply by 10 or 100, then subtract the number.","46 × 99 → 4600 − 46 → 4554",()=>{const m=ri(12,99),r=Math.random()<.5?9:99;return{q:`${m} × ${r}`,a:m*r}}],
+["Near 100 (Nikhilam)","Find each gap from 100. Subtract one gap from the other number for the front part. Multiply the gaps for the last two digits.","96 × 94 → gaps 4, 6 → 96 − 6 = 90 | 4 × 6 = 24 → 9024",()=>{const a=ri(91,99),b=ri(91,99);return{q:`${a} × ${b}`,a:a*b}}],
+["Difference of squares","Two numbers equally either side of a round number: (m − d)(m + d) = m² − d².","47 × 53 → 50² − 3² → 2500 − 9 = 2491",()=>{const m=ri(3,10)*10,d=ri(1,9);return{q:`${m-d} × ${m+d}`,a:m*m-d*d}}],
+["Squares near 50","(m ± d)² = m² ± 2md + d².","52² → 2500 + 200 + 4 → 2704",()=>{const m=ri(41,59);return{q:m+"²",a:m*m}}]
+];
+const tricks=()=>TR.map((t,i)=>`<h2>${t[0]}</h2><p>${t[1]}</p><div class="ex">${t[2]}</div><button class="ghost" data-k="${i}">Practise this</button>`).join("");
+
+/* ---------- Questions ---------- */
+const L={easy:{t:12,sq:15,cu:10,rs:15,rc:6,pn:10,fr:10,pc:[10,20,25,50],u:20},medium:{t:20,sq:30,cu:15,rs:30,rc:10,pn:25,fr:16,pc:[5,10,12.5,15,20,25,30,40,50,60,75],u:20},hard:{t:30,sq:50,cu:25,rs:50,rc:15,pn:40,fr:20,pc:[5,7.5,12.5,15,17.5,35,45,60,75,85],u:40}};
+const GEN={
+ tables:()=>{const t=L[lvl].t,a=ri(2,t),b=ri(2,t);return{q:`${a} × ${b}`,a:a*b}},
+ squares:()=>{const a=ri(2,L[lvl].sq);return{q:a+"²",a:a*a}},
+ cubes:()=>{const a=ri(2,L[lvl].cu);return{q:a+"³",a:a**3}},
+ roots:()=>{const l=L[lvl];if(Math.random()<.6){const a=ri(2,l.rs);return{q:"√"+a*a,a}}const a=ri(2,l.rc);return{q:"∛"+a**3,a}},
+ percent:()=>{const l=L[lvl],p=l.pc[ri(0,l.pc.length-1)],N=ri(1,l.pn)*l.u;return{q:`${p}% of ${N}`,a:p*N/100}},
+ fractions:()=>{const d=ri(2,L[lvl].fr),p=lvl==="easy"?1:ri(1,d-1);return Math.random()<.7?{q:`${p}/${d} as %`,a:100*p/d,tol:.02}:{q:`${p}/${d} as decimal`,a:p/d,tol:.001}},
+ aptitude:()=>{const r=ri(0,2);
+  if(r===0){const x=[ri(10,60),ri(10,60),ri(10,60),ri(10,60)],s=x.reduce((a,v)=>a+v);x[3]+=(4-s%4)%4;return{q:"Average of "+x.join(", "),a:x.reduce((a,v)=>a+v)/4}}
+  if(r===1){const P=ri(2,50)*100,R=ri(2,12),T=ri(2,5);return{q:`Simple interest on ₹${P} at ${R}% for ${T} years`,a:P*R*T/100}}
+  const a=ri(1,8),b=ri(a+1,9),k=ri(2,15);return{q:`Larger share of ${(a+b)*k} in ratio ${a}:${b}`,a:b*k}}
+};
+TR.forEach((t,i)=>GEN["k"+i]=t[3]);
+function make(){
+ let g=tab,fb=0;
+ if(tab==="mixed")g=BASE[ri(0,BASE.length-1)][0];
+ if(tab==="weak"){
+  const e=Object.entries(W).filter(([k,v])=>v.m>0);
+  if(e.length){let r=Math.random()*e.reduce((s,[k,v])=>s+v.m,0);for(const [k,v] of e){r-=v.m;if(r<=0)return{q:k,a:v.a,tol:v.tol}}}
+  g=BASE[ri(0,BASE.length-1)][0];fb=1}
+ const o=GEN[g]();o.fb=fb;return o}
+function rec(ok,ms){
+ const d=dk(new Date()),h=H[d]||(H[d]={ok:0,tot:0,ms:0});h.tot++;h.ms+=ms;if(ok)h.ok++;
+ const k=cur.q,w=W[k];
+ if(!ok)W[k]={a:cur.a,tol:cur.tol,m:(w?w.m:0)+2};
+ else if(w){if(ms<=6000)w.m-=1;if(w.m<=0)delete W[k]}
+ else if(ms>8000)W[k]={a:cur.a,tol:cur.tol,m:1};
+ sv("sm_h",H);sv("sm_w",W)}
+const parse=s=>parseFloat(String(s).trim().replace(",","."));
+
+/* ---------- Quiz ---------- */
+function next(){cur=make();t0=Date.now();drawQuiz()}
+function drawQuiz(){
+ const avg=S.tot?(S.ms/S.tot/1000).toFixed(1)+"s":"–";
+ $("#view").innerHTML=`<div class="stats"><div><b>${S.ok}/${S.tot}</b><span>Correct</span></div><div><b>${S.streak}</b><span>Streak</span></div><div><b>${avg}</b><span>Avg time</span></div></div>
+ <div class="q${cur.q.length>14?" sm":""}">${cur.q} = ?</div>
+ <div class="qrow"><input class="ans" id="ans" type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="go" id="chk">Check</button></div>
+ <div id="fb" aria-live="polite">${cur.fb?"<small>No weak spots yet, so here is a mixed question.</small>":""}</div>
+ <div class="btns" style="justify-content:center"><button class="ghost" id="rst">Reset score</button></div>`;
+ $("#ans").focus()}
+function check(){
+ if(cur.done){next();return}
+ const v=parse($("#ans").value);if(isNaN(v))return;
+ const ok=Math.abs(v-cur.a)<(cur.tol||.01),ms=Date.now()-t0,c=cur;
+ c.done=1;S.tot++;S.ms+=ms;rec(ok,ms);$("#ans").disabled=true;
+ if(ok){S.ok++;S.streak++;$("#fb").innerHTML='<span class="ok">Correct</span>';setTimeout(()=>{if(cur===c&&mode==="quiz")next()},700)}
+ else{S.streak=0;$("#fb").innerHTML=`<span class="bad">Answer: ${f(c.a)}</span>`;$("#chk").textContent="Next question";$("#chk").focus()}}
+
+/* ---------- Sprint ---------- */
+function drawPre(){
+ $("#view").innerHTML=`<h2>60-second sprint</h2><p>Answer as many as you can. Whole-number answers submit as soon as you type enough digits.</p><p>Best for ${NAMES[tab]||"this trick"} (${lvl}): <b>${B[tab+"|"+lvl]||0}</b></p><div class="btns"><button class="go" id="start">Start</button>${VOICE_OK?`<button class="ghost" id="vtog" aria-pressed="${voiceOn}">${voiceOn?"🎤 Voice: on":"🎤 Voice: off"}</button>`:""}</div>${VOICE_OK?"<p><small>Voice: say the answer out loud (e.g. “two hundred and fifty six”). Typing still works too.</small></p>":"<p><small>Voice answers need a browser with speech recognition, such as Chrome or Edge.</small></p>"}`}
+function start(){
+ sp={on:1,end:Date.now()+6e4,ok:0,tot:0};
+ $("#view").innerHTML=`<div class="stats"><div><b id="tl">60</b><span>Seconds</span></div><div><b id="sc">0</b><span>Correct</span></div><div><b id="tt">0</b><span>Answered</span></div></div><div class="q" id="qq"></div><div class="qrow"><input class="ans" id="ans" type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"></div><div id="fb" aria-live="polite"></div><div id="hear" style="text-align:center;min-height:1.4em"><small></small></div>`;
+ sNext();timer=setInterval(tick,200);if(voiceOn)startVoice()}
+function sNext(){cur=make();t0=Date.now();const e=$("#qq");e.textContent=cur.q+" = ?";e.className="q"+(cur.q.length>14?" sm":"");const a=$("#ans");a.value="";a.focus()}
+function tick(){$("#tl").textContent=Math.max(0,Math.ceil((sp.end-Date.now())/1000));if(Date.now()>=sp.end)end()}
+function sAns(force){
+ if(!sp.on)return;const s=$("#ans").value.trim(),v=parse(s);if(!s||isNaN(v))return;
+ if(!force&&!(Number.isInteger(cur.a)&&s.length>=String(cur.a).length))return;
+ const ok=Math.abs(v-cur.a)<(cur.tol||.01);rec(ok,Date.now()-t0);sp.tot++;if(ok)sp.ok++;
+ $("#sc").textContent=sp.ok;$("#tt").textContent=sp.tot;
+ $("#fb").innerHTML=ok?'<span class="ok">Correct</span>':`<span class="bad">${cur.q} = ${f(cur.a)}</span>`;sNext()}
+function end(){
+ clearInterval(timer);stopVoice();sp.on=0;const k=tab+"|"+lvl,nb=sp.ok>(B[k]||0);if(nb){B[k]=sp.ok;sv("sm_b",B)}
+ $("#view").innerHTML=`<h2>Time is up</h2><div class="stats"><div><b>${sp.ok}</b><span>Correct</span></div><div><b>${sp.tot}</b><span>Answered</span></div><div><b>${sp.tot?Math.round(100*sp.ok/sp.tot):0}%</b><span>Accuracy</span></div></div><p>${nb?"New best score!":"Best: "+(B[k]||0)}</p><div class="btns"><button class="go" id="start">Play again</button><button class="ghost" data-m="stats">See progress</button></div>`}
+
+/* ---------- Voice (sprint) ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition,VOICE_OK=!!SR;
+let voiceOn=VOICE_OK&&ld("sm_voice",false)===true,rec_=null,vIgnore=-1;
+const HOMO={to:2,too:2,for:4,fore:4,won:1,ate:8,tree:3,free:3,oh:0,nil:0};
+const UNITS={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19};
+const TENS={twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90};
+function spokenToNum(t){
+ t=String(t).toLowerCase().replace(/(\d),(?=\d{3})/g,"$1").replace(/-/g," ").replace(/[^a-z0-9.\s]/g," ").trim();
+ if(!t)return null;
+ let neg=false,total=0,cur_=0,seen=false,dec=null;
+ for(let x of t.split(/\s+/)){
+  if(x==="minus"||x==="negative"){neg=true;continue}
+  if(x==="point"||x==="dot"){dec="";continue}
+  if(x==="and"||x==="the"||x==="is"||x==="equals"||x==="its")continue;
+  if(/^\d+(\.\d+)?$/.test(x)){
+   if(dec!==null){dec+=x.replace(".","");seen=true;continue}
+   if(x.includes(".")){total+=parseFloat(x);seen=true;continue}
+   cur_+=parseInt(x,10);seen=true;continue}
+  if(x in HOMO)x=String(HOMO[x]);
+  if(/^\d$/.test(x)){if(dec!==null)dec+=x;else cur_+=+x;seen=true;continue}
+  if(x in UNITS){if(dec!==null)dec+=UNITS[x];else cur_+=UNITS[x];seen=true;continue}
+  if(x in TENS){cur_+=TENS[x];seen=true;continue}
+  if(x==="hundred"){cur_=(cur_||1)*100;seen=true;continue}
+  if(x==="thousand"){total+=(cur_||1)*1e3;cur_=0;seen=true;continue}
+  if(x==="lakh"||x==="lakhs"){total+=(cur_||1)*1e5;cur_=0;seen=true;continue}
+  if(x==="million"){total+=(cur_||1)*1e6;cur_=0;seen=true;continue}
+ }
+ if(!seen)return null;
+ let v=total+cur_;if(dec)v=parseFloat(v+"."+dec);
+ return neg?-v:v}
+function hear(msg){const h=$("#hear small");if(h)h.textContent=msg}
+function startVoice(){
+ if(!VOICE_OK)return;stopVoice();
+ const r=rec_=new SR();r.lang="en-IN";r.continuous=true;r.interimResults=true;r.maxAlternatives=3;vIgnore=-1;
+ r.onstart=()=>hear("🎤 Listening… say your answer");
+ r.onresult=e=>{
+  if(!sp.on||!cur)return;
+  const i=e.results.length-1;if(i<=vIgnore)return;
+  const res=e.results[i];let v=null,txt=res[0].transcript;
+  const alts=[];for(let k=0;k<res.length;k++){const n=spokenToNum(res[k].transcript);if(n!==null)alts.push([n,res[k].transcript])}
+  if(alts.length){const m=alts.find(([n])=>Math.abs(n-cur.a)<(cur.tol||.01));const pick=m||alts[0];v=pick[0];txt=pick[1]}
+  hear("Heard: "+txt.trim());
+  if(v===null){if(res.isFinal)vIgnore=i;return}
+  const match=Math.abs(v-cur.a)<(cur.tol||.01);
+  if(match||res.isFinal){vIgnore=i;$("#ans").value=v;sAns(true)}};
+ r.onerror=e=>{
+  if(e.error==="not-allowed"||e.error==="service-not-allowed"){hear("Microphone blocked. Allow mic access, or type your answers.");voiceOn=false;rec_=null}
+  else if(e.error==="audio-capture")hear("No microphone found.")};
+ r.onend=()=>{if(rec_===r&&sp.on&&voiceOn){vIgnore=-1;try{r.start()}catch(_){}}};
+ try{r.start()}catch(_){}}
+function stopVoice(){const r=rec_;rec_=null;if(r){r.onend=null;try{r.abort()}catch(_){}}}
+
+/* ---------- Stats ---------- */
+function stats(){
+ const T={ok:0,tot:0,ms:0};for(const d in H){T.ok+=H[d].ok;T.tot+=H[d].tot;T.ms+=H[d].ms}
+ let st=0,d=new Date();if(!(H[dk(d)]&&H[dk(d)].tot))d.setDate(d.getDate()-1);
+ while(H[dk(d)]&&H[dk(d)].tot){st++;d.setDate(d.getDate()-1)}
+ let bars="";for(let i=6;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);const h=H[dk(x)]||{ok:0,tot:0};
+  bars+=`<div class="bar"><i style="height:${h.tot?Math.round(80*h.ok/h.tot):0}px"></i>${"SMTWTFS"[x.getDay()]}<br>${h.tot||"–"}</div>`}
+ const best=Object.entries(B).map(([k,v])=>{const [t,l]=k.split("|");return row(`${NAMES[t]||"Trick"} · ${l}`,v)}).join("")||"<p>No sprints yet.</p>";
+ const wk=Object.entries(W).sort((a,b)=>b[1].m-a[1].m).slice(0,8);
+ return `<div class="stats"><div><b>${st}</b><span>Day streak</span></div><div><b>${T.tot}</b><span>Answered</span></div><div><b>${T.tot?Math.round(100*T.ok/T.tot):0}%</b><span>Accuracy</span></div><div><b>${T.tot?(T.ms/T.tot/1000).toFixed(1)+"s":"–"}</b><span>Avg time</span></div></div>
+ <h2>Last 7 days</h2><div class="bars">${bars}</div><small>Bar height is accuracy. The number is questions answered.</small>
+ <h2>Best sprint scores</h2><div class="list">${best}</div>
+ <h2>Weak spots</h2>${wk.length?`<div class="list">${wk.map(([k,v])=>row(k,f(v.a))).join("")}</div>`:"<p>None yet. Missed or slow questions will show up here.</p>"}
+ <div class="btns">${wk.length?'<button class="go" id="wk">Practise weak spots</button>':""}<button class="ghost" id="clr">${clr?"Tap again to clear":"Clear saved data"}</button></div>
+ <p><small>Progress is saved on this device.</small></p>`}
+
+/* ---------- Shell ---------- */
+function render(){
+ clearInterval(timer);stopVoice();sp={};clr=false;
+ if(mode==="learn"&&!LEARN[tab])tab="tables";
+ const play=mode==="quiz"||mode==="sprint";
+ let tp=mode==="learn"?BASE:play?BASE.concat([["mixed","Mixed"],["weak","Weak spots"]],/^k/.test(tab)?[[tab,"Trick drill"]]:[]):[];
+ $("#modes").innerHTML=MODES.map(([k,l])=>`<button class="${k===mode?"on":""}" data-m="${k}">${l}</button>`).join("");
+ $("#tabs").innerHTML=tp.map(([k,l])=>`<button class="${k===tab?"on":""}" data-t="${k}">${l}</button>`).join("");
+ $("#tabs").style.display=tp.length?"":"none";
+ $("#lv").innerHTML=play?`Level <div class="seg">${["easy","medium","hard"].map(l=>`<button class="${l===lvl?"on":""}" data-l="${l}">${l[0].toUpperCase()+l.slice(1)}</button>`).join("")}</div>`:"";
+ const v=$("#view");
+ if(mode==="learn"){cur=null;v.innerHTML=LEARN[tab]()}
+ else if(mode==="quiz")next();
+ else if(mode==="sprint")drawPre();
+ else if(mode==="tricks")v.innerHTML=tricks();
+ else v.innerHTML=stats()}
+document.addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+ if(d.m){mode=d.m;render()}
+ else if(d.t){tab=d.t;render()}
+ else if(d.l){lvl=d.l;render()}
+ else if(d.k){mode="quiz";tab="k"+d.k;render()}
+ else if(b.id==="chk")check();
+ else if(b.id==="rst"){S={ok:0,tot:0,streak:0,ms:0};next()}
+ else if(b.id==="start")start();
+ else if(b.id==="vtog"){voiceOn=!voiceOn;sv("sm_voice",voiceOn);drawPre()}
+ else if(b.id==="wk"){mode="quiz";tab="weak";render()}
+ else if(b.id==="clr"){if(clr){H={};W={};B={};sv("sm_h",H);sv("sm_w",W);sv("sm_b",B);clr=false}else clr=true;$("#view").innerHTML=stats()}
+});
+document.addEventListener("input",e=>{
+ const i=e.target.id;
+ if(i==="num"){n=Math.max(1,Math.min(100,parseInt(e.target.value)||1));$("#out").innerHTML=tRows()}
+ else if(i==="pn"){pn=parseFloat(e.target.value)||0;$("#out").innerHTML=pRows()}
+ else if(i==="ans"&&mode==="sprint")sAns(false)});
+document.addEventListener("keydown",e=>{
+ if(e.key!=="Enter")return;
+ if(mode==="quiz"&&cur){e.preventDefault();check()}
+ else if(mode==="sprint"&&sp.on){e.preventDefault();sAns(true)}});
+render();
+</script>
+</body>
+</html>
